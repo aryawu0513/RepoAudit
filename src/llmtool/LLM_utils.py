@@ -131,7 +131,7 @@ class LLM:
             )
             if _is_new_openai:
                 kwargs["max_completion_tokens"] = self.max_output_length
-                kwargs["reasoning_effort"] = "minimal"
+                kwargs["reasoning_effort"] = "low"
             else:
                 kwargs["max_tokens"] = self.max_output_length
                 kwargs["temperature"] = self.temperature
