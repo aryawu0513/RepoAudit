@@ -572,6 +572,7 @@ class DFBScanAgent(Agent):
         self.logger.print_console("The log files are as follows:")
         for log_file in self.get_log_files():
             self.logger.print_console(log_file)
+        self._write_case_summaries()
         return
 
     def start_scan(self) -> None:
@@ -610,7 +611,31 @@ class DFBScanAgent(Agent):
         self.logger.print_console("The log files are as follows:")
         for log_file in self.get_log_files():
             self.logger.print_console(log_file)
+        self._write_case_summaries()
         return
+
+    def _write_case_summaries(self) -> None:
+        """
+        Ensure each per-file result exists and write a companion summary
+        containing a simple tp/fn flag.
+        """
+        for case_path in self._case_res_paths.values():
+            summary_path = case_path.replace(".json", "_summary.json")
+            bug_dict = {}
+            if os.path.exists(case_path):
+                try:
+                    with open(case_path, "r") as f:
+                        bug_dict = json.load(f)
+                except Exception:
+                    bug_dict = {}
+            else:
+                # Always materialize per-file results for downstream gating.
+                with open(case_path, "w") as f:
+                    json.dump({}, f, indent=4)
+            bug_count = len(bug_dict)
+            flag = "tp" if bug_count > 0 else "fn"
+            with open(summary_path, "w") as f:
+                json.dump({"flag": flag, "bug_count": bug_count}, f, indent=2)
 
     def __process_src_value(self, src_value: Value) -> None:
         case_key = src_value.file
