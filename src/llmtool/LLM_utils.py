@@ -121,7 +121,9 @@ class LLM:
         _is_new_openai = self.online_model_name.startswith(("gpt-5", "o1", "o3", "o4"))
 
         def call_api():
-            client = OpenAI(api_key=api_key)
+            # Explicit base_url prevents OPENAI_BASE_URL env var (set by the
+            # Qwen refiner) from accidentally routing o3/gpt calls to localhost.
+            client = OpenAI(api_key=api_key, base_url="https://api.openai.com/v1")
             kwargs = dict(
                 model=self.online_model_name,
                 messages=[
